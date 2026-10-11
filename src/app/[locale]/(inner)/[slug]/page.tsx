@@ -2,17 +2,18 @@ import PrimaryHeading from '@/components/PrimaryHeading';
 import SecondaryHeading from '@/components/SecondaryHeading';
 import Project from '@/components/projects/Project';
 import { getProject } from '@/data/projects';
-import { unstable_setRequestLocale } from 'next-intl/server';
+import { setRequestLocale } from 'next-intl/server';
 
-export default function Page({
-  params: { slug, id = 1, locale },
+export default async function Page({
+  params,
 }: {
-  params: { slug: string; id?: number; locale: string };
+  params: Promise<{ slug: string; locale: string }>;
 }) {
-  unstable_setRequestLocale(locale);
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
 
   const secondaryHeading = slug[0].toUpperCase() + slug.slice(1);
-  const project = getProject(id);
+  const project = getProject(1);
 
   return (
     <main>
