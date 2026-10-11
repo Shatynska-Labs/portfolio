@@ -15,4 +15,4 @@
 
 - [x] 3.1 `npm run lint` and `npm run build` pass with no `DATABASE_URL`
 - [x] 3.2 Build the image and run it with `docker compose` under its read-only settings: healthcheck turns healthy, `/en` and `/ua` list all five projects, and `/_next/image` serves
-- [ ] 3.3 After the merge: deploy job green, `https://shatynska.com/` serves the site with a valid certificate, and `www` routes too
+- [x] 3.3 After the merge: deploy job green, `https://shatynska.com/` serves the site with a valid certificate, and `www` routes too
