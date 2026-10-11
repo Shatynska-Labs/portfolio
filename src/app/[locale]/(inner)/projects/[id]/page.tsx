@@ -1,5 +1,6 @@
 import PrimaryHeading from '@/components/PrimaryHeading';
 import Project from '@/components/projects/Project';
+import { getProject } from '@/data/projects';
 import { unstable_setRequestLocale } from 'next-intl/server';
 
 export default function Page({
@@ -9,13 +10,17 @@ export default function Page({
 }) {
   unstable_setRequestLocale(locale);
 
+  const project = getProject(1);
+
   return (
     <main>
       <PrimaryHeading />
-      <Project
-        projectId={1}
-        className=" divide-background-700  bg-background-800 text-background-50 fill-background"
-      />
+      {project && (
+        <Project
+          project={project}
+          className=" divide-background-700  bg-background-800 fill-background text-background-50"
+        />
+      )}
     </main>
   );
 }

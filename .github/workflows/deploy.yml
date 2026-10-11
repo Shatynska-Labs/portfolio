@@ -2,56 +2,90 @@ name: Deploy
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  # Lowercase literal: must match docker-compose.yml and the `portfolio`
+  # entry in the infrastructure repo's deploy_apps (image reclamation keys
+  # on the last path segment).
+  IMAGE_NAME: ghcr.io/shatynska-labs/portfolio
 
 jobs:
-  build-container:
-    name: Build container
+  build-and-push:
+    name: Build and push image
     runs-on: ubuntu-latest
-
+    concurrency:
+      group: build-portfolio
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Make envfile
-        uses: SpicyPizza/create-envfile@v2
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
         with:
-          envkey_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-      - name: Build and push to Docker Hub
-        uses: docker/build-push-action@v5
+      - name: Build and push
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
-          tags: shatynska/shatynskacom:latest
+          tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-  redeploy:
-    name: Redeploy stack to Portainer
+  deploy:
+    name: Deploy (production)
+    needs: build-and-push
     runs-on: ubuntu-latest
-    needs: build-container
-
+    environment: production
+    concurrency:
+      group: deploy-portfolio-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Redeploy stack
-        uses: luminos-company/portami@v1.2
+      # SSH to the host is reachable only over the tailnet.
+      - name: Connect to the tailnet
+        uses: tailscale/github-action@v4
         with:
-          endpoint: 'https://admin.psypra.com'
-          access_token: ${{ secrets.PORTAINER_ACCESS_TOKEN }}
-          stack_name: 'shatynska_com'
-          file_path: '.github/stack/production.yml'
-          prune: true
-          pull: true
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+          tags: tag:ci
+          ping: ${{ vars.DEPLOY_HOST }}
+
+      # A commit SHA is [0-9a-f]{40}, so it needs none of the .env escaping
+      # the infrastructure repo's platform-deploy.yml applies to secrets.
+      - name: Render .env
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: printf 'IMAGE_TAG="%s"\n' "$IMAGE_TAG" > .env
+
+      - name: Deliver and deploy
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_SSH_KEY: ${{ secrets.PORTFOLIO_DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          tar -czf - docker-compose.yml .env \
+            | ssh -i ~/.ssh/deploy_key \
+                -o StrictHostKeyChecking=accept-new \
+                "deploy@${DEPLOY_HOST}"
+
+      - name: Check the public site
+        run: |
+          for i in $(seq 1 12); do
+            if curl -fsS -o /dev/null https://shatynska.com/en; then exit 0; fi
+            sleep 10
+          done
+          echo "::warning::https://shatynska.com/en is not answering yet (DNS or certificate may still be pending)"
