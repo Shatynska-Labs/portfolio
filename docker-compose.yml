@@ -1,0 +1,21 @@
+services:
+  web:
+    image: ghcr.io/shatynska-labs/portfolio:${IMAGE_TAG:?IMAGE_TAG is not rendered}
+    restart: unless-stopped
+    read_only: true
+    # Next.js writes its optimized-image cache here; it is disposable.
+    tmpfs:
+      - /tmp
+      - /app/.next/cache:uid=1001,gid=1001
+    networks:
+      - platform_edge
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portfolio.rule=Host(`shatynska.com`) || Host(`www.shatynska.com`)"
+      - "traefik.http.routers.portfolio.entrypoints=websecure"
+      - "traefik.http.routers.portfolio.tls.certresolver=letsencrypt"
+      - "traefik.http.services.portfolio.loadbalancer.server.port=3000"
+
+networks:
+  platform_edge:
+    external: true
