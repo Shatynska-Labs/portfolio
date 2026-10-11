@@ -2,14 +2,15 @@ import AboutSection from '@/components/AboutSection';
 import Header from '@/components/Header';
 import HamburgerMenu from '@/components/navigation/HamburgerMenu';
 import Projects from '@/components/projects/Projects';
-import { unstable_setRequestLocale } from 'next-intl/server';
+import { setRequestLocale } from 'next-intl/server';
 
-export default function Home({
-  params: { locale },
+export default async function Home({
+  params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
-  unstable_setRequestLocale(locale);
+  const { locale } = await params;
+  setRequestLocale(locale);
 
   return (
     <main>

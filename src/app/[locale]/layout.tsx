@@ -1,7 +1,9 @@
 import Footer from '@/components/Footer';
-import { NextIntlClientProvider, useMessages } from 'next-intl';
-import { unstable_setRequestLocale } from 'next-intl/server';
+import { routing } from '@/i18n/routing';
+import { hasLocale, NextIntlClientProvider } from 'next-intl';
+import { setRequestLocale } from 'next-intl/server';
 import { Manrope } from 'next/font/google';
+import { notFound } from 'next/navigation';
 import './globals.css';
 
 const manrope = Manrope({ subsets: ['latin', 'cyrillic'] });
@@ -12,26 +14,25 @@ export const metadata = {
     'Web developer focused on backend with frontend background. Main technology stack used: PHP, Laravel, MySQL, TypeScript, Next.js.',
 };
 
-const locales = ['en', 'ua'];
-
 export function generateStaticParams() {
-  return locales.map((locale) => ({ locale }));
+  return routing.locales.map((locale) => ({ locale }));
 }
 
-export default function LocaleLayout({
+export default async function LocaleLayout({
   children,
-  params: { locale },
+  params,
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
-  unstable_setRequestLocale(locale);
-  const messages = useMessages();
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) notFound();
+  setRequestLocale(locale);
 
   return (
     <html lang={locale}>
       <body className={manrope.className}>
-        <NextIntlClientProvider locale={locale} messages={messages}>
+        <NextIntlClientProvider>
           {children}
           <Footer />
         </NextIntlClientProvider>

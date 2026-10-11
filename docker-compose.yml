@@ -3,10 +3,12 @@ services:
     image: ghcr.io/shatynska-labs/portfolio:${IMAGE_TAG:?IMAGE_TAG is not rendered}
     restart: unless-stopped
     read_only: true
-    # Next.js writes its optimized-image cache here; it is disposable.
+    # Next.js writes its optimized-image and route caches here; both are
+    # disposable.
     tmpfs:
       - /tmp
       - /app/.next/cache:uid=1001,gid=1001
+      - /app/.next/server/route-cache:uid=1001,gid=1001
     networks:
       - platform_edge
     labels:

@@ -6,9 +6,9 @@ Personal portfolio site for Helen Shatynska (shatynska.com) — presents project
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 (App Router), React 18, TypeScript 5.4
+- **Framework**: Next.js 16 (App Router), React 19, TypeScript 5.4
 - **Styling**: Tailwind CSS 3 (CSS variables for theming, `tailwindcss-animate`), shadcn/ui conventions (`components.json`, `class-variance-authority`, `tailwind-merge`, `clsx`)
-- **i18n**: `next-intl` with two locales, `en` (default) and `ua`, routed via `[locale]` segment and `src/middleware.ts`; messages in `messages/en.json` / `messages/ua.json`
+- **i18n**: `next-intl` with two locales, `en` (default) and `ua`, routed via the `[locale]` segment and `src/proxy.ts`, with routing defined in `src/i18n/routing.ts` and request config in `src/i18n/request.ts`; messages in `messages/en.json` / `messages/ua.json`
 - **Content data**: no database. The project list (projects, types, roles, with `en`/`ua` text) is a typed file, `src/data/projects.ts`
 - **UI primitives**: Radix UI (`@radix-ui/react-popover`), `lucide-react` icons, `keen-slider` for the projects carousel
 - **Other libs**: `react-error-boundary`, `react-intersection-observer`, `sharp` (image optimization)
@@ -33,7 +33,7 @@ Personal portfolio site for Helen Shatynska (shatynska.com) — presents project
 
 ### Testing Strategy
 
-- No automated test suite currently exists in this repo. `npm run lint` (`next lint`) is the only automated check. Manual verification is done by running `npm run dev` and checking the browser.
+- No automated test suite currently exists in this repo. `npm run lint` (ESLint 9, flat config in `eslint.config.mjs`) is the only automated check. Manual verification is done by running `npm run dev` and checking the browser.
 
 ### Git Workflow
 
