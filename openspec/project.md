@@ -54,4 +54,4 @@ Personal portfolio site for Helen Shatynska (shatynska.com) — presents project
 ## External Dependencies
 
 - GHCR (image registry: `ghcr.io/shatynska-labs/portfolio`)
-- Personal Hetzner host `main-production`, reached over Tailscale (org variable `DEPLOY_HOST`, org secrets `TAILSCALE_OAUTH_*`; environment `production` holds `PORTFOLIO_DEPLOY_SSH_KEY` and `PORTFOLIO_PROBE_SSH_KEY`), with Traefik + Let's Encrypt serving `shatynska.com` and `www.shatynska.com`
+- Personal Hetzner host `main-production`, reached over Tailscale (org variable `MAIN_PRODUCTION_DEPLOY_HOST`, org secrets `TAILSCALE_OAUTH_*`; environment `production` holds `PORTFOLIO_DEPLOY_SSH_KEY` and `PORTFOLIO_PROBE_SSH_KEY`), with Traefik + Let's Encrypt serving `shatynska.com` and `www.shatynska.com`
