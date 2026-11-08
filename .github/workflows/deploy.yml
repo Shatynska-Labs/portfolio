@@ -59,7 +59,7 @@ jobs:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
           tags: tag:ci
-          ping: ${{ vars.DEPLOY_HOST }}
+          ping: ${{ vars.MAIN_PRODUCTION_DEPLOY_HOST }}
 
       # A commit SHA is [0-9a-f]{40}, so it needs none of the .env escaping
       # the infrastructure repo's platform-deploy.yml applies to secrets.
@@ -70,7 +70,7 @@ jobs:
 
       - name: Deliver and deploy
         env:
-          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_HOST: ${{ vars.MAIN_PRODUCTION_DEPLOY_HOST }}
           DEPLOY_SSH_KEY: ${{ secrets.PORTFOLIO_DEPLOY_SSH_KEY }}
         run: |
           set -euo pipefail
